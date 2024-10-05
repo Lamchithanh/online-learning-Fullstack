@@ -1,75 +1,110 @@
-// Nhập các mô-đun cần thiết
 const express = require("express");
 const bcrypt = require("bcrypt");
-const path = require("path");
-const configViewEngine = require("./config/ViewEngine");
+const cors = require("cors");
+const bodyParser = require("body-parser");
 const db = require("./config/db");
 require("dotenv").config();
 
-// Tạo ứng dụng Express
 const app = express();
 const port = process.env.PORT || 8081;
-//config template engine
-configViewEngine(app);
-// Kết nối tới cơ sở dữ liệu MySQL bằng pool
-db.getConnection((err, connection) => {
-    if (err) {
-        console.error("Lỗi kết nối tới MySQL:", err);
-        return;
-    }
-    console.log("Đã kết nối tới MySQL bằng pool");
-    connection.release(); // giải phóng kết nối về lại pool
+const saltRounds = 10;
+
+app.use(cors({ origin: "http://localhost:9000" }));
+app.use(bodyParser.json());
+
+// Utility function to hash password
+const hashPassword = async (password) => {
+    return await bcrypt.hash(password, saltRounds);
+};
+
+// Utility function to check if a string is already hashed
+const isHashed = (str) => {
+    return /^\$2[ayb]\$[0-9]{2}\$[A-Za-z0-9./]{53}$/.test(str);
+};
+
+app.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+
+    db.query(
+        `SELECT * FROM users WHERE email = ?`,
+        [email],
+        async (err, results) => {
+            if (err) {
+                console.error("Database query error:", err);
+                return res.status(500).json({ error: "Internal Server Error" });
+            }
+
+            if (results.length === 0) {
+                return res
+                    .status(401)
+                    .json({ error: "Invalid email or password" });
+            }
+
+            const user = results[0];
+            let storedPassword = user.password;
+
+            // Check if the stored password is not hashed, and hash it if necessary
+            if (!isHashed(storedPassword)) {
+                try {
+                    storedPassword = await hashPassword(storedPassword);
+                    // Update the database with the hashed password
+                    db.query("UPDATE users SET password = ? WHERE id = ?", [
+                        storedPassword,
+                        user.id,
+                    ]);
+                } catch (hashError) {
+                    console.error("Error hashing password:", hashError);
+                    return res
+                        .status(500)
+                        .json({ error: "Internal Server Error" });
+                }
+            }
+
+            try {
+                const match = await bcrypt.compare(password, storedPassword);
+                if (match) {
+                    res.json({
+                        message: "Login successful",
+                        userName: user.name,
+                    });
+                } else {
+                    res.status(401).json({
+                        error: "Invalid email or password",
+                    });
+                }
+            } catch (compareError) {
+                console.error("Error comparing password:", compareError);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        }
+    );
 });
 
-// Truy vấn bằng pool
-db.query("SELECT * FROM users", (err, results) => {
-    if (err) {
-        console.error("Lỗi truy vấn cơ sở dữ liệu:", err);
-        return;
+// Endpoint to register a new user
+app.post("/register", async (req, res) => {
+    const { id, userName, email, password } = req.body;
+
+    try {
+        const hashedPassword = await hashPassword(password);
+        db.query(
+            "INSERT INTO users (id, userName, email, password) VALUES (?, ?, ?, ?)",
+            [id, userName, email, hashedPassword],
+            (err, result) => {
+                if (err) {
+                    console.error("Error registering new user:", err);
+                    return res
+                        .status(500)
+                        .json({ error: "Error registering new user" });
+                }
+                res.json({ message: "User registered successfully" });
+            }
+        );
+    } catch (hashError) {
+        console.error("Error hashing password:", hashError);
+        res.status(500).json({ error: "Internal Server Error" });
     }
-    console.log(">>>> kết quả: ", results);
 });
 
-// Định nghĩa tuyến đường cho đăng nhập
-// app.post("/Login", (req, res) => {
-//     const { email, password } = req.body;
-
-//     // Truy vấn cơ sở dữ liệu để tìm người dùng
-//     db.query(`SELECT * FROM users WHERE email = ?`, email, (err, results) => {
-//         if (err) {
-//             console.error("Lỗi truy vấn cơ sở dữ liệu:", err);
-//             res.status(500).send({ error: "Lỗi Máy chủ Nội bộ" });
-//             return;
-//         }
-
-//         if (results.length === 0) {
-//             res.status(401).send({ error: "Email hoặc mật khẩu không hợp lệ" });
-//             return;
-//         }
-
-//         const user = results[0];
-//         const hashedPassword = user.password;
-
-//         // So sánh mật khẩu được cung cấp với mật khẩu đã mã hóa
-//         bcrypt.compare(password, hashedPassword, (err, result) => {
-//             if (err) {
-//                 console.error("Lỗi so sánh mật khẩu:", err);
-//                 res.status(500).send({ error: "Lỗi Máy chủ Nội bộ" });
-//                 return;
-//             }
-
-//             if (!result) {
-//                 res.status(401).send({ error: "Email hoặc mật khẩu không hợp lệ" });
-//                 return;
-//             }
-
-//             // Đăng nhập thành công, chuyển hướng đến bảng điều khiển hoặc một nơi khác
-//             res.send({ message: "Đăng nhập thành công" });
-//         });
-//     });
-// });
-
-// Khởi động máy chủ
 app.listen(port, () => {
-    console.log("Máy chủ đã khởi động tại cổng 8081");
+    console.log(`Server running on port ${port}`);
 });

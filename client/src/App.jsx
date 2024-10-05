@@ -6,11 +6,22 @@ import "./App.css";
 import Login from "./Page/Login/Login";
 
 function App() {
-    const [count, setCount] = useState(0);
+    const [loggedInUser, setLoggedInUser] = useState(null);
+
+    const handleLoginSuccess = (userName) => {
+        setLoggedInUser(userName);
+    };
 
     return (
-        <div>
-            <Login />
+        <div className="app">
+            {loggedInUser ? (
+                <div className="welcome-message">
+                    <h1>Welcome, {loggedInUser}!</h1>
+                    <p>You have successfully logged in.</p>
+                </div>
+            ) : (
+                <Login onLoginSuccess={handleLoginSuccess} />
+            )}
         </div>
     );
 }
