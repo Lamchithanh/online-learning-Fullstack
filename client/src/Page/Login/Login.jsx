@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios"; // Ensure axios is correctly imported
+import "../Login/Login.scss";
+import "bootstrap";
 
 const Login = () => {
     const [email, setEmail] = useState("");
@@ -29,10 +31,11 @@ const Login = () => {
 
     return (
         <div>
-            <form onSubmit={handleSubmit}>
-                <p>Sign in to your account</p>
+            <form className="form-signin" onSubmit={handleSubmit}>
+                <p className="title-signin">Sign in to your account</p>
                 <div>
                     <input
+                        className="ipemail"
                         type="email"
                         placeholder="Enter email"
                         value={email}
@@ -41,15 +44,20 @@ const Login = () => {
                 </div>
                 <div>
                     <input
+                        className="ippassword"
                         type="password"
                         placeholder="Enter password"
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
                     />
                 </div>
-                <button type="submit">Sign in</button>
+                <button className="btn-signin" type="submit">
+                    Sign in
+                </button>
                 {error && <p style={{ color: "red" }}>{error}</p>}
             </form>
+
+         
         </div>
     );
 };

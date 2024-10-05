@@ -1,0 +1,22 @@
+.form-signin {
+    background: #d3d3d3;
+    padding: 20px;
+    border-radius: 10px;
+    .title-signin {
+        color: #32cd32;
+        font-size:18px;
+        font-weight: 700;
+    }
+}
+.ipemail,
+.ippassword {
+    margin: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    border-color: #bfd2d1;
+}
+.btn-signin {
+    background: #0000ff;
+    color: aliceblue;
+    font-size: 15px;
+}
