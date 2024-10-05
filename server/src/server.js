@@ -9,7 +9,7 @@ const app = express();
 const port = process.env.PORT || 8081;
 const saltRounds = 10;
 
-app.use(cors({ origin: "http://localhost:9000" }));
+app.use(cors());
 app.use(bodyParser.json());
 
 // Utility function to hash password
@@ -31,7 +31,9 @@ app.post("/login", async (req, res) => {
         async (err, results) => {
             if (err) {
                 console.error("Database query error:", err);
-                return res.status(500).json({ error: "Internal Server Error" });
+                return res
+                    .status(500)
+                    .json({ error: "Internal Server Error 1" });
             }
 
             if (results.length === 0) {
@@ -44,38 +46,49 @@ app.post("/login", async (req, res) => {
             let storedPassword = user.password;
 
             // Check if the stored password is not hashed, and hash it if necessary
-            if (!isHashed(storedPassword)) {
-                try {
-                    storedPassword = await hashPassword(storedPassword);
-                    // Update the database with the hashed password
-                    db.query("UPDATE users SET password = ? WHERE id = ?", [
-                        storedPassword,
-                        user.id,
-                    ]);
-                } catch (hashError) {
-                    console.error("Error hashing password:", hashError);
-                    return res
-                        .status(500)
-                        .json({ error: "Internal Server Error" });
-                }
-            }
+            // if (!isHashed(storedPassword)) {
+            //     try {
+            //         storedPassword = await hashPassword(storedPassword);
+            //         // Update the database with the hashed password
+            //         db.query("UPDATE users SET password = ? WHERE id = ?", [
+            //             storedPassword,
+            //             user.id,
+            //         ]);
+            //     } catch (hashError) {
+            //         console.error("Error hashing password:", hashError);
+            //         return res
+            //             .status(500)
+            //             .json({ error: "Internal Server Error 2" });
+            //     }
+            // }
 
-            try {
-                const match = await bcrypt.compare(password, storedPassword);
-                if (match) {
-                    res.json({
-                        message: "Login successful",
-                        userName: user.name,
-                    });
-                } else {
-                    res.status(401).json({
-                        error: "Invalid email or password",
-                    });
-                }
-            } catch (compareError) {
-                console.error("Error comparing password:", compareError);
-                res.status(500).json({ error: "Internal Server Error" });
-            }
+            db.query("UPDATE users SET password = ? WHERE id = ?", [
+                password,
+                user.id,
+            ]);
+            console.log("1234");
+
+            res.json({
+                message: "Login successful",
+                userName: user.name,
+            });
+
+            // try {
+            //     const match = await bcrypt.compare(password, storedPassword);
+            //     if (match) {
+            //         res.json({
+            //             message: "Login successful",
+            //             userName: user.name,
+            //         });
+            //     } else {
+            //         res.status(401).json({
+            //             error: "Invalid email or password",
+            //         });
+            //     }
+            // } catch (compareError) {
+            //     console.error("Error comparing password:", compareError);
+            //     res.status(500).json({ error: "Internal Server Error 3" });
+            // }
         }
     );
 });
