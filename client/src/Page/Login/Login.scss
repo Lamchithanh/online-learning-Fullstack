@@ -2,10 +2,22 @@
     background: #d3d3d3;
     padding: 20px;
     border-radius: 10px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center; /* Căn giữa theo chiều ngang */
+    align-items: center;
     .title-signin {
         color: #32cd32;
-        font-size:18px;
+        font-size: 18px;
         font-weight: 700;
+    }
+    .btn-signin {
+        background: #0000ff;
+        color: aliceblue;
+        font-size: 15px;
     }
 }
 .ipemail,
@@ -14,9 +26,4 @@
     padding: 10px;
     border-radius: 8px;
     border-color: #bfd2d1;
-}
-.btn-signin {
-    background: #0000ff;
-    color: aliceblue;
-    font-size: 15px;
 }

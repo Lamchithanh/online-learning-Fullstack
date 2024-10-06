@@ -1,29 +1,22 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "bootstrap";
-import "./App.css";
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Login from "./Page/Login/Login";
+import HomePage from "./Page/Home/HomePage";
 
-function App() {
-    const [loggedInUser, setLoggedInUser] = useState(null);
-
-    const handleLoginSuccess = (userName) => {
-        setLoggedInUser(userName);
-    };
-
+const App = () => {
     return (
-        <div className="app">
-            {loggedInUser ? (
-                <div className="welcome-message">
-                    <h1>Welcome, {loggedInUser}!</h1>
-                    <p>You have successfully logged in.</p>
-                </div>
-            ) : (
-                <Login onLoginSuccess={handleLoginSuccess} />
-            )}
-        </div>
+        <Router>
+            <div className="app">
+                <ToastContainer />
+                <Routes>
+                    <Route path="/" element={<Login />} />
+                    <Route path="/home" element={<HomePage />} />
+                </Routes>
+            </div>
+        </Router>
     );
-}
+};
 
 export default App;

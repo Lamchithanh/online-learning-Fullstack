@@ -1,24 +1,26 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 import "../Login/Login.scss";
+import "bootstrap";
 
-const Login = ({ onLoginSuccess }) => {
+const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        setError(null);
-
         try {
             const response = await axios.post("http://localhost:9000/login", {
                 email,
                 password,
             });
-            onLoginSuccess(response.data.userName);
+            toast.success("Login successful!");
+            navigate("/home", { state: { userName: response.data.userName } });
         } catch (error) {
-            setError(
+            toast.error(
                 error.response?.data?.error ||
                     "An error occurred. Please try again."
             );
@@ -26,9 +28,9 @@ const Login = ({ onLoginSuccess }) => {
     };
 
     return (
-        <div>
-            <form className="form-signin" onSubmit={handleSubmit}>
-                <p className="title-signin">Sign in to your account</p>
+        <div className="container">
+            <form className="form-signin container" onSubmit={handleSubmit}>
+                <p className="title-signin">Login in to your account</p>
                 <div>
                     <input
                         className="ipemail"
@@ -50,9 +52,8 @@ const Login = ({ onLoginSuccess }) => {
                     />
                 </div>
                 <button className="btn-signin" type="submit">
-                    Sign in
+                    Login in
                 </button>
-                {error && <p style={{ color: "red" }}>{error}</p>}
             </form>
         </div>
     );

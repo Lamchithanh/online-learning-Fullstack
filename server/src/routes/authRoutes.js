@@ -1,9 +1,16 @@
-const express = require("express");
-const { register, login } = require("../controllers/authController");
+import React from "react";
+import { Route, Navigate } from "react-router-dom";
+import { useAuth } from "./AuthContext";
 
-const router = express.Router();
+const ProtectedRoute = ({ children }) => {
+    const { isAuthenticated } = useAuth();
 
-router.post("/register", register);
-router.post("/login", login);
+    if (!isAuthenticated) {
+        // Nếu chưa đăng nhập, chuyển hướng đến trang đăng nhập
+        return <Navigate to="/" />;
+    }
 
-module.exports = router;
+    return children; // Trả về children nếu đã đăng nhập
+};
+
+export default ProtectedRoute;
