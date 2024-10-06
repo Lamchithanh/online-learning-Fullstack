@@ -10,6 +10,7 @@ const port = process.env.PORT || 9000;
 app.use(cors());
 app.use(bodyParser.json());
 
+//đăng nhập
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
@@ -49,13 +50,13 @@ app.post("/login", async (req, res) => {
     });
 });
 
+// đăng ký
 app.post("/register", async (req, res) => {
-    const { username, email, password } = req.body; // Đã sửa thành username
+    const { username, email, password, role } = req.body;
 
-    // Thay vì băm mật khẩu, lưu mật khẩu trực tiếp vào cơ sở dữ liệu
     db.query(
-        "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)", // Đã sửa thành password_hash
-        [username, email, password], // Đã sửa thành username
+        "INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)",
+        [username, email, password, role],
         (err, result) => {
             if (err) {
                 console.error("Error registering new user:", err);
@@ -66,6 +67,37 @@ app.post("/register", async (req, res) => {
             res.json({ message: "User registered successfully" });
         }
     );
+});
+
+// quên mật khẩu
+app.post("/forgot-password", async (req, res) => {
+    const { email } = req.body;
+
+    // In a real application, you would generate a password reset token and send an email here
+    // For this example, we'll just check if the email exists in the database
+
+    db.query("SELECT * FROM users WHERE email = ?", [email], (err, results) => {
+        if (err) {
+            console.error("Database query error:", err);
+            return res.status(500).json({ error: "Internal Server Error" });
+        }
+        console.log("Email:", email);
+        console.log("Password :", password);
+        console.log("Results from DB:", results);
+        if (results.length === 0) {
+            // Don't reveal if the email exists or not for security reasons
+            return res.json({
+                message:
+                    "If an account with that email exists, we have sent password reset instructions.",
+            });
+        }
+
+        // In a real application, send password reset email here
+        res.json({
+            message:
+                "If an account with that email exists, we have sent password reset instructions.",
+        });
+    });
 });
 
 app.listen(port, () => {

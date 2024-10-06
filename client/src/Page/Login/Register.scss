@@ -1,4 +1,4 @@
-.form-signin {
+.form-Register {
     background: #d3d3d3;
     padding: 20px;
     border-radius: 10px;
@@ -9,27 +9,27 @@
     display: grid;
     justify-content: center; /* Căn giữa theo chiều ngang */
     align-items: center;
-    p {
+
+    h2 {
         text-align: center;
     }
-    .title-signin {
+    .title-Register {
         color: #32cd32;
         font-size: 18px;
         font-weight: 700;
     }
-    input {
+
+    input,
+    select {
         margin: 10px;
         padding: 10px;
         border-radius: 8px;
         border-color: #bfd2d1;
     }
-    .btn-signin {
+
+    .btn-Register {
         background: #0000ff;
         color: aliceblue;
         font-size: 15px;
-        
-        &:hover {
-            background-color: #2492ce; /* Màu nền khi hover */
-        }
     }
 }

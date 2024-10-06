@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "../Login/Login.scss";
@@ -30,30 +30,33 @@ const Login = () => {
     return (
         <div className="container">
             <form className="form-signin container" onSubmit={handleSubmit}>
-                <p className="title-signin">Login in to your account</p>
-                <div>
-                    <input
-                        className="ipemail"
-                        type="email"
-                        placeholder="Enter email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <input
-                        className="ippassword"
-                        type="password"
-                        placeholder="Enter password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                </div>
+                <p className="title-signin">Login to your account</p>
+
+                <input
+                    className="ipemail"
+                    type="email"
+                    placeholder="Enter email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                />
+
+                <input
+                    className="ippassword"
+                    type="password"
+                    placeholder="Enter password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                />
+
                 <button className="btn-signin" type="submit">
-                    Login in
+                    Login
                 </button>
+                <p>
+                    <Link to="/register">Create an account</Link> |{" "}
+                    <Link to="/forgot-password">Forgot password?</Link>
+                </p>
             </form>
         </div>
     );
