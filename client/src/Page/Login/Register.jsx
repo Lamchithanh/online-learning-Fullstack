@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "./Register.scss"; // You'll need to create this file for styling
-
+import "bootstrap";
 const Register = () => {
     const [username, setUsername] = useState("");
     const [role, setRole] = useState("");
@@ -43,6 +43,7 @@ const Register = () => {
             <form className="form-Register" onSubmit={handleSubmit}>
                 <h2 className="title-Register">Create an Account</h2>
                 <input
+                    className="ip_user form-control"
                     type="text"
                     placeholder="Username"
                     value={username}
@@ -78,10 +79,11 @@ const Register = () => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                 />
-
-                <button className="btn-Register" type="submit">
-                    Register
-                </button>
+                <div className="d-flex justify-content-center">
+                    <button className="btn-Register" type="submit">
+                        Register
+                    </button>
+                </div>
                 <p>
                     Already have an account? <a href="/">Log in</a>
                 </p>

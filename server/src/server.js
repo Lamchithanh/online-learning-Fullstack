@@ -37,14 +37,18 @@ app.post("/login", async (req, res) => {
         if (password === storedPassword) {
             res.json({
                 message: "Đăng nhập thành công",
-                userName: user.username,
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    role: user.role,
+                },
             });
         } else {
             res.status(401).json({ error: "Email hoặc mật khẩu không hợp lệ" });
         }
     });
 });
-
 // Đăng ký
 app.post("/register", async (req, res) => {
     const { username, email, password, role } = req.body;

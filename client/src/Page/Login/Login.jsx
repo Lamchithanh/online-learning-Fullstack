@@ -18,7 +18,9 @@ const Login = () => {
                 password,
             });
             toast.success("Login successful!");
-            navigate("/home", { state: { userName: response.data.userName } });
+            // Add this line to store user data in localStorage
+            localStorage.setItem("user", JSON.stringify(response.data.user));
+            navigate("/");
         } catch (error) {
             toast.error(
                 error.response?.data?.error ||
