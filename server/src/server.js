@@ -10,96 +10,97 @@ const port = process.env.PORT || 9000;
 app.use(cors());
 app.use(bodyParser.json());
 
-//đăng nhập
+// Đăng nhập
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return res
-            .status(400)
-            .json({ error: "Email and password are required" });
+        return res.status(400).json({ error: "Email và mật khẩu là bắt buộc" });
     }
 
     db.query(`SELECT * FROM users WHERE email = ?`, [email], (err, results) => {
         if (err) {
-            console.error("Database query error:", err);
-            return res.status(500).json({ error: "Internal Server Error 1" });
+            console.error("Lỗi truy vấn cơ sở dữ liệu:", err);
+            return res.status(500).json({ error: "Lỗi máy chủ nội bộ" });
         }
 
-        console.log("Email:", email);
-        console.log("Password :", password);
-        console.log("Results from DB:", results);
-
         if (results.length === 0) {
-            return res.status(401).json({ error: "Invalid email or password" });
+            return res
+                .status(401)
+                .json({ error: "Email hoặc mật khẩu không hợp lệ" });
         }
 
         const user = results[0];
-        const storedPassword = user.password_hash; // Đã sửa thành password_hash
+        const storedPassword = user.password_hash;
 
         // So sánh mật khẩu trực tiếp
         if (password === storedPassword) {
-            // So sánh trực tiếp (cần băm mật khẩu khi đăng ký)
             res.json({
-                message: "Login successful",
-                userName: user.username, // Đã sửa thành username
+                message: "Đăng nhập thành công",
+                userName: user.username,
             });
         } else {
-            res.status(401).json({ error: "Invalid email or password" });
+            res.status(401).json({ error: "Email hoặc mật khẩu không hợp lệ" });
         }
     });
 });
 
-// đăng ký
+// Đăng ký
 app.post("/register", async (req, res) => {
     const { username, email, password, role } = req.body;
 
+    if (!username || !email || !password) {
+        return res
+            .status(400)
+            .json({ error: "Tên người dùng, email và mật khẩu là bắt buộc" });
+    }
+
+    const userRole = role || "student"; // Mặc định vai trò là 'student'
+    if (!["student", "instructor", "admin"].includes(userRole)) {
+        return res.status(400).json({ error: "Vai trò không hợp lệ" });
+    }
+
     db.query(
         "INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)",
-        [username, email, password, role],
+        [username, email, password, userRole],
         (err, result) => {
             if (err) {
-                console.error("Error registering new user:", err);
+                console.error("Lỗi đăng ký người dùng mới:", err);
                 return res
                     .status(500)
-                    .json({ error: "Error registering new user" });
+                    .json({ error: "Lỗi trong quá trình đăng ký người dùng" });
             }
-            res.json({ message: "User registered successfully" });
+            res.json({ message: "Người dùng đã được đăng ký thành công" });
         }
     );
 });
 
-// quên mật khẩu
+// Quên mật khẩu
 app.post("/forgot-password", async (req, res) => {
     const { email } = req.body;
 
-    // In a real application, you would generate a password reset token and send an email here
-    // For this example, we'll just check if the email exists in the database
-
     db.query("SELECT * FROM users WHERE email = ?", [email], (err, results) => {
         if (err) {
-            console.error("Database query error:", err);
-            return res.status(500).json({ error: "Internal Server Error" });
+            console.error("Lỗi truy vấn cơ sở dữ liệu:", err);
+            return res.status(500).json({ error: "Lỗi máy chủ nội bộ" });
         }
-        console.log("Email:", email);
-        console.log("Password :", password);
-        console.log("Results from DB:", results);
+
         if (results.length === 0) {
-            // Don't reveal if the email exists or not for security reasons
+            // Không tiết lộ nếu email tồn tại hay không
             return res.json({
                 message:
-                    "If an account with that email exists, we have sent password reset instructions.",
+                    "Nếu tài khoản với email đó tồn tại, chúng tôi đã gửi hướng dẫn đặt lại mật khẩu.",
             });
         }
 
-        // In a real application, send password reset email here
+        // Thực tế, bạn sẽ gửi email đặt lại mật khẩu ở đây
         res.json({
             message:
-                "If an account with that email exists, we have sent password reset instructions.",
+                "Nếu tài khoản với email đó tồn tại, chúng tôi đã gửi hướng dẫn đặt lại mật khẩu.",
         });
     });
 });
 
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+    console.log(`Máy chủ đang chạy trên cổng ${port}`);
 });

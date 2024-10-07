@@ -54,8 +54,8 @@ const Register = () => {
                     onChange={(e) => setRole(e.target.value)}
                     required
                 >
-                    <option value="student">1. Student</option>
-                    <option value="instructor">2. Instructor</option>
+                    <option value="student">1. student</option>
+                    <option value="instructor">2. instructor</option>
                 </select>
                 <input
                     type="email"
