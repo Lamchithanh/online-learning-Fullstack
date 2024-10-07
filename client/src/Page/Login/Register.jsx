@@ -20,7 +20,7 @@ const Register = () => {
         }
         try {
             const response = await axios.post(
-                "http://localhost:9000/register",
+                "http://localhost:9000/api/register",
                 {
                     username,
                     role,

@@ -10,7 +10,7 @@ const ForgotPassword = () => {
         event.preventDefault();
         try {
             const response = await axios.post(
-                "http://localhost:9000/forgot-password",
+                "http://localhost:9000/api/forgot-password",
                 { email }
             );
             toast.success(

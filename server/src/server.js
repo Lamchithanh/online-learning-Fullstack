@@ -49,8 +49,9 @@ app.post("/login", async (req, res) => {
         }
     });
 });
+
 // Đăng ký
-app.post("/register", async (req, res) => {
+app.post("/api/register", async (req, res) => {
     const { username, email, password, role } = req.body;
 
     if (!username || !email || !password) {
@@ -80,7 +81,7 @@ app.post("/register", async (req, res) => {
 });
 
 // Quên mật khẩu
-app.post("/forgot-password", async (req, res) => {
+app.post("/api/forgot-password", async (req, res) => {
     const { email } = req.body;
 
     db.query("SELECT * FROM users WHERE email = ?", [email], (err, results) => {
@@ -102,6 +103,17 @@ app.post("/forgot-password", async (req, res) => {
             message:
                 "Nếu tài khoản với email đó tồn tại, chúng tôi đã gửi hướng dẫn đặt lại mật khẩu.",
         });
+    });
+});
+
+// Lấy danh sách khóa học
+app.get("/api/courses", (req, res) => {
+    db.query("SELECT * FROM courses", (err, results) => {
+        if (err) {
+            console.error("Lỗi truy vấn cơ sở dữ liệu:", err);
+            return res.status(500).json({ error: "Lỗi máy chủ nội bộ" });
+        }
+        res.json(results);
     });
 });
 

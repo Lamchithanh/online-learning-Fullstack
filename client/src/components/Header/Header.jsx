@@ -37,7 +37,7 @@ const Header = () => {
         localStorage.removeItem("user");
         setUser(null);
         setDropdownActive(false);
-        navigate("/login");
+        navigate("/");
     };
 
     const toggleDropdown = (e) => {
@@ -66,7 +66,14 @@ const Header = () => {
     return (
         <header className="header">
             <div className="header__logo">
-                <span className="logo-icon">F8</span>
+                <span className="logo-icon">
+                    <img
+                        width="50"
+                        height="50"
+                        src="https://img.icons8.com/bubbles/50/classroom.png"
+                        alt="classroom"
+                    />
+                </span>
                 <span className="logo-text">Học Lập Trình Để Đi Làm</span>
             </div>
             <div className="header__search">
