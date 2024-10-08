@@ -1,16 +1,17 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import "./Register.scss"; // You'll need to create this file for styling
+import "./Register.scss"; // Bạn sẽ cần tạo file này để định kiểu
 import "bootstrap";
+import { register } from "../../../../server/src/api";
+
 const Register = () => {
-    const [username, setUsername] = useState("");
-    const [role, setRole] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const navigate = useNavigate();
+    const [username, setUsername] = useState(""); // Tên người dùng
+    const [email, setEmail] = useState(""); // Địa chỉ email
+    const [password, setPassword] = useState(""); // Mật khẩu
+    const [confirmPassword, setConfirmPassword] = useState(""); // Xác nhận mật khẩu
+    const [role, setRole] = useState("student"); // Giá trị mặc định cho vai trò
+    const navigate = useNavigate(); // Để chuyển hướng
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -18,16 +19,14 @@ const Register = () => {
             toast.error("Passwords don't match!");
             return;
         }
+
         try {
-            const response = await axios.post(
-                "http://localhost:9000/api/register",
-                {
-                    username,
-                    role,
-                    email,
-                    password,
-                }
-            );
+            const response = await register({
+                username,
+                email,
+                password,
+                role,
+            });
             toast.success("Registration successful! Please log in.");
             navigate("/login");
         } catch (error) {
@@ -44,11 +43,11 @@ const Register = () => {
                 Quay lại
             </button>
             <form className="form-Register" onSubmit={handleSubmit}>
-                <h2 className="title-Register">Create an Account</h2>
+                <h2 className="title-Register">Tạo tài khoản</h2>
                 <input
                     className="ip_user form-control"
                     type="text"
-                    placeholder="Username"
+                    placeholder="Tên người dùng"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
@@ -58,8 +57,8 @@ const Register = () => {
                     onChange={(e) => setRole(e.target.value)}
                     required
                 >
-                    <option value="student">1. student</option>
-                    <option value="instructor">2. instructor</option>
+                    <option value="student">1. Học viên</option>
+                    <option value="instructor">2. Giảng viên</option>
                 </select>
                 <input
                     type="email"
@@ -70,25 +69,25 @@ const Register = () => {
                 />
                 <input
                     type="password"
-                    placeholder="Password"
+                    placeholder="Mật khẩu"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                 />
                 <input
                     type="password"
-                    placeholder="Confirm Password"
+                    placeholder="Xác nhận mật khẩu"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                 />
                 <div className="d-flex justify-content-center">
                     <button className="btn-Register" type="submit">
-                        Register
+                        Đăng ký
                     </button>
                 </div>
                 <p>
-                    Already have an account? <a href="/">Log in</a>
+                    Bạn đã có tài khoản? <a href="/">Đăng nhập</a>
                 </p>
             </form>
         </div>

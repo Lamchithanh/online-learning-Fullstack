@@ -1,37 +1,37 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
 import "../Login/Login.scss";
 import "bootstrap";
+import { login } from "../../../../server/src/api"; // Import hàm login từ api.js (đã điều chỉnh)
 
 const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
 
+    // Hàm xử lý sự kiện khi người dùng gửi form
     const handleSubmit = async (event) => {
         event.preventDefault();
         try {
-            const response = await axios.post(
-                "http://localhost:9000/api/login",
-                {
-                    email,
-                    password,
-                }
-            );
+            console.log("Sending login request..."); // Log trước khi gửi yêu cầu
+            const response = await login(email, password);
+            console.log("Response received:", response); // Log phản hồi từ API
+
             toast.success("Đăng nhập thành công!");
 
-            // Lưu thông tin người dùng vào localStorage
-            localStorage.setItem("user", JSON.stringify(response.data.user));
+            localStorage.setItem("user", JSON.stringify(response.user));
+            localStorage.setItem("token", response.token);
 
-            // Chuyển hướng dựa trên vai trò
-            if (response.data.user.role === "admin") {
+            if (response.user.role === "admin") {
                 navigate("/admin");
+            } else if (response.user.role === "instructor") {
+                navigate("/instructor");
             } else {
                 navigate("/");
             }
         } catch (error) {
+            console.error("Login error:", error); // Log lỗi nếu xảy ra
             toast.error(
                 error.response?.data?.error ||
                     "Đã xảy ra lỗi. Vui lòng thử lại."
