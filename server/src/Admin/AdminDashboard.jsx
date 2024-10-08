@@ -8,16 +8,9 @@ import {
     Form,
     Input,
     Select,
-    Upload,
     message,
 } from "antd";
-import {
-    UserOutlined,
-    BookOutlined,
-    VideoCameraOutlined,
-    UploadOutlined,
-} from "@ant-design/icons";
-import { toast } from "react-toastify";
+import { UserOutlined, BookOutlined } from "@ant-design/icons";
 import axios from "axios";
 
 const { Header, Content, Sider } = Layout;
@@ -28,8 +21,11 @@ const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
     const [courses, setCourses] = useState([]);
     const [isUserModalVisible, setIsUserModalVisible] = useState(false);
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [form] = Form.useForm();
+    const [isUserEditModalVisible, setIsUserEditModalVisible] = useState(false);
+    const [userToEdit, setUserToEdit] = useState(null);
+    const [isCourseModalVisible, setIsCourseModalVisible] = useState(false);
+    const [userForm] = Form.useForm();
+    const [courseForm] = Form.useForm();
 
     useEffect(() => {
         fetchUsers();
@@ -39,20 +35,16 @@ const AdminDashboard = () => {
     const fetchUsers = async () => {
         try {
             const token = localStorage.getItem("token");
-            console.log("Token:", token); // Kiểm tra lại token
             const response = await axios.get(
                 "http://localhost:9000/api/users",
                 {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
+                    headers: { Authorization: `Bearer ${token}` },
                 }
             );
-            console.log("Response:", response); // Kiểm tra lại phản hồi
             setUsers(response.data);
         } catch (error) {
             console.error("Error fetching users:", error);
-            toast.error("Unable to load users");
+            message.error("Unable to load users");
         }
     };
 
@@ -64,7 +56,57 @@ const AdminDashboard = () => {
             setCourses(response.data);
         } catch (error) {
             console.error("Error fetching courses:", error);
-            toast.error("Unable to load courses");
+            message.error("Unable to load courses");
+        }
+    };
+
+    const addUser = async (values) => {
+        try {
+            const token = localStorage.getItem("token");
+            await axios.post("http://localhost:9000/api/users", values, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            message.success("User added successfully");
+            setIsUserModalVisible(false);
+            userForm.resetFields();
+            fetchUsers();
+        } catch (error) {
+            console.error("Error adding user:", error);
+            message.error("Unable to add user");
+        }
+    };
+
+    const editUser = async (values) => {
+        try {
+            const token = localStorage.getItem("token");
+            await axios.put(
+                `http://localhost:9000/api/users/${userToEdit.id}`,
+                values,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+            message.success("User updated successfully");
+            setIsUserEditModalVisible(false);
+            userForm.resetFields();
+            fetchUsers();
+        } catch (error) {
+            console.error("Error updating user:", error);
+            message.error("Unable to update user");
+        }
+    };
+
+    const deleteUser = async (userId) => {
+        try {
+            const token = localStorage.getItem("token");
+            await axios.delete(`http://localhost:9000/api/users/${userId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            message.success("User deleted successfully");
+            fetchUsers();
+        } catch (error) {
+            console.error("Error deleting user:", error);
+            message.error("Unable to delete user");
         }
     };
 
@@ -73,6 +115,29 @@ const AdminDashboard = () => {
         { title: "Username", dataIndex: "username", key: "username" },
         { title: "Email", dataIndex: "email", key: "email" },
         { title: "Role", dataIndex: "role", key: "role" },
+        {
+            title: "Action",
+            key: "action",
+            render: (_, record) => (
+                <>
+                    <Button
+                        onClick={() => {
+                            setUserToEdit(record);
+                            setIsUserEditModalVisible(true);
+                            userForm.setFieldsValue(record);
+                        }}
+                    >
+                        Edit
+                    </Button>
+                    <Button
+                        onClick={() => deleteUser(record.id)}
+                        style={{ marginLeft: 8 }}
+                    >
+                        Delete
+                    </Button>
+                </>
+            ),
+        },
     ];
 
     const courseColumns = [
@@ -85,22 +150,19 @@ const AdminDashboard = () => {
         {
             title: "Action",
             key: "action",
-            render: (text, record) => (
+            render: (_, record) => (
                 <>
-                    <Button onClick={() => showLessonsModal(record)}>
-                        Manage Lessons
-                    </Button>
                     <Button
                         onClick={() => {
-                            setIsEditModalVisible(true);
-                            setCourseToEdit(record);
-                            editForm.setFieldsValue(record);
+                            // Implement course edit functionality
                         }}
                     >
                         Edit
                     </Button>
                     <Button
-                        onClick={() => deleteCourse(record.id)}
+                        onClick={() => {
+                            // Implement course delete functionality
+                        }}
                         style={{ marginLeft: 8 }}
                     >
                         Delete
@@ -109,114 +171,6 @@ const AdminDashboard = () => {
             ),
         },
     ];
-    //show users
-    const showUserModal = () => {
-        setIsUserModalVisible(true);
-    };
-
-    const showCoursesModal = () => {
-        setIsModalVisible(true);
-    };
-    // Add new User
-    const [userForm] = Form.useForm();
-    const handleUserOk = () => {
-        userForm
-            .validateFields()
-            .then((values) => {
-                // Xử lý việc thêm người dùng mới
-                console.log("Thêm người dùng mới:", values);
-                setIsUserModalVisible(false);
-                userForm.resetFields();
-            })
-            .catch((info) => {
-                console.log("Validate Failed:", info);
-            });
-    };
-    // Add new Course
-    const handleOk = () => {
-        form.validateFields()
-            .then((values) => {
-                // Here you would send the form data to your backend
-                console.log("Form values:", values);
-                toast.success("Course added successfully");
-                setIsModalVisible(false);
-                form.resetFields();
-                fetchCourses(); // Refresh the courses list
-            })
-            .catch((info) => {
-                console.log("Validate Failed:", info);
-            });
-    };
-
-    const handleCancel = () => {
-        setIsModalVisible(false);
-        form.resetFields();
-    };
-
-    const showLessonsModal = (course) => {
-        // Implement a modal to manage lessons and videos for the selected course
-        console.log("Manage lessons for course:", course);
-        // You would typically fetch lessons for this course and allow CRUD operations
-    };
-
-    const [editForm] = Form.useForm();
-    const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-    const [courseToEdit, setCourseToEdit] = useState({});
-
-    const handleEditOk = () => {
-        editForm
-            .validateFields()
-            .then((values) => {
-                // Chuyển đổi giá trị price thành một số nguyên hoặc một số thập phân
-                values.price = parseFloat(values.price);
-
-                // Here you would send the form data to your backend
-                console.log("Form values:", values);
-                axios
-                    .put(
-                        `http://localhost:9000/api/courses/${courseToEdit.id}`,
-                        values,
-                        {
-                            headers: {
-                                Authorization: `Bearer ${localStorage.getItem(
-                                    "token"
-                                )}`,
-                            },
-                        }
-                    )
-                    .then((response) => {
-                        toast.success("Course edited successfully");
-                        setIsEditModalVisible(false);
-                        editForm.resetFields();
-                        fetchCourses(); // Refresh the courses list
-                    })
-                    .catch((error) => {
-                        console.error("Error editing course:", error);
-                        toast.error("Unable to edit course");
-                    });
-            })
-            .catch((info) => {
-                console.log("Validate Failed:", info);
-            });
-    };
-
-    const deleteCourse = (courseId) => {
-        const token = localStorage.getItem("token");
-        axios
-            .delete(`http://localhost:9000/api/courses/${courseId}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            })
-            .then((response) => {
-                toast.success("Course deleted successfully");
-                fetchCourses(); // Refresh the courses list
-            })
-            .catch((error) => {
-                console.error("Error deleting course:", error);
-                toast.error("Unable to delete course");
-            });
-    };
 
     return (
         <Layout style={{ minHeight: "100vh" }}>
@@ -244,7 +198,7 @@ const AdminDashboard = () => {
                             window.location.href = "/login";
                         }}
                     >
-                        Đăng xuất
+                        Logout
                     </Button>
                     <h2 style={{ margin: "0 16px" }}>Admin Dashboard</h2>
                 </Header>
@@ -258,7 +212,7 @@ const AdminDashboard = () => {
                     {selectedMenu === "users" && (
                         <>
                             <Button
-                                onClick={showUserModal}
+                                onClick={() => setIsUserModalVisible(true)}
                                 style={{ marginBottom: 16 }}
                             >
                                 Add New User
@@ -273,7 +227,7 @@ const AdminDashboard = () => {
                     {selectedMenu === "courses" && (
                         <>
                             <Button
-                                onClick={showCoursesModal}
+                                onClick={() => setIsCourseModalVisible(true)}
                                 style={{ marginBottom: 16 }}
                             >
                                 Add New Course
@@ -289,166 +243,19 @@ const AdminDashboard = () => {
             </Layout>
 
             <Modal
-                title="Add New Course"
-                visible={isModalVisible}
-                onOk={handleOk}
-                onCancel={handleCancel}
-            >
-                <Form form={form} layout="vertical">
-                    <Form.Item
-                        name="title"
-                        label="Title"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please input the title!",
-                            },
-                        ]}
-                    >
-                        <Input />
-                    </Form.Item>
-                    <Form.Item
-                        name="description"
-                        label="Description"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please input the description!",
-                            },
-                        ]}
-                    >
-                        <Input.TextArea />
-                    </Form.Item>
-                    <Form.Item
-                        name="price"
-                        label="Price"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please input the price!",
-                            },
-                        ]}
-                    >
-                        <Input type="number" />
-                    </Form.Item>
-                    <Form.Item
-                        name="level"
-                        label="Level"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please select the level!",
-                            },
-                        ]}
-                    >
-                        <Select>
-                            <Option value="beginner">Beginner</Option>
-                            <Option value="intermediate">Intermediate</Option>
-                            <Option value="advanced">Advanced</Option>
-                        </Select>
-                    </Form.Item>
-                    <Form.Item
-                        name="category"
-                        label="Category"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please input the category!",
-                            },
-                        ]}
-                    >
-                        <Input />
-                    </Form.Item>
-                </Form>
-            </Modal>
-            <Modal
-                title="Edit Course"
-                visible={isEditModalVisible}
-                onOk={handleEditOk}
-                onCancel={() => setIsEditModalVisible(false)}
-            >
-                <Form form={editForm} layout="vertical">
-                    <Form.Item
-                        name="title"
-                        label="Title"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please input the title!",
-                            },
-                        ]}
-                    >
-                        <Input />
-                    </Form.Item>
-                    <Form.Item
-                        name="description"
-                        label="Description"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please input the description!",
-                            },
-                        ]}
-                    >
-                        <Input.TextArea />
-                    </Form.Item>
-                    <Form.Item
-                        name="price"
-                        label="Price"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please input the price!",
-                            },
-                        ]}
-                    >
-                        <Input type="number" />
-                    </Form.Item>
-                    <Form.Item
-                        name="level"
-                        label="Level"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please select the level!",
-                            },
-                        ]}
-                    >
-                        <Select>
-                            <Option value="beginner">Beginner</Option>
-                            <Option value="intermediate">Intermediate</Option>
-                            <Option value="advanced">Advanced</Option>
-                        </Select>
-                    </Form.Item>
-                    <Form.Item
-                        name="category"
-                        label="Category"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please input the category!",
-                            },
-                        ]}
-                    >
-                        <Input />
-                    </Form.Item>
-                </Form>
-            </Modal>
-
-            <Modal
                 title="Add New User"
                 visible={isUserModalVisible}
-                onOk={handleUserOk}
+                onOk={() => userForm.submit()}
                 onCancel={() => setIsUserModalVisible(false)}
             >
-                <Form form={userForm} layout="vertical">
+                <Form form={userForm} layout="vertical" onFinish={addUser}>
                     <Form.Item
                         name="username"
-                        label="Tên người dùng"
+                        label="Username"
                         rules={[
                             {
                                 required: true,
-                                message: "Vui lòng nhập tên người dùng!",
+                                message: "Please input the username!",
                             },
                         ]}
                     >
@@ -460,7 +267,7 @@ const AdminDashboard = () => {
                         rules={[
                             {
                                 required: true,
-                                message: "Vui lòng nhập email!",
+                                message: "Please input the email!",
                             },
                         ]}
                     >
@@ -468,18 +275,84 @@ const AdminDashboard = () => {
                     </Form.Item>
                     <Form.Item
                         name="password"
-                        label="Mật khẩu"
+                        label="Password"
                         rules={[
                             {
                                 required: true,
-                                message: "Vui lòng nhập mật khẩu!",
+                                message: "Please input the password!",
                             },
                         ]}
                     >
-                        <Input type="password" />
+                        <Input.Password />
+                    </Form.Item>
+                    <Form.Item
+                        name="role"
+                        label="Role"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please select the role!",
+                            },
+                        ]}
+                    >
+                        <Select>
+                            <Option value="student">Student</Option>
+                            <Option value="instructor">Instructor</Option>
+                        </Select>
                     </Form.Item>
                 </Form>
             </Modal>
+
+            <Modal
+                title="Edit User"
+                visible={isUserEditModalVisible}
+                onOk={() => userForm.submit()}
+                onCancel={() => setIsUserEditModalVisible(false)}
+            >
+                <Form form={userForm} layout="vertical" onFinish={editUser}>
+                    <Form.Item
+                        name="username"
+                        label="Username"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please input the username!",
+                            },
+                        ]}
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item
+                        name="email"
+                        label="Email"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please input the email!",
+                            },
+                        ]}
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item
+                        name="role"
+                        label="Role"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please select the role!",
+                            },
+                        ]}
+                    >
+                        <Select>
+                            <Option value="student">Student</Option>
+                            <Option value="instructor">Instructor</Option>
+                        </Select>
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            {/* Implement Course Modal here */}
         </Layout>
     );
 };

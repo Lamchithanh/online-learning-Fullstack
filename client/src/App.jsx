@@ -13,6 +13,10 @@ import ForgotPassword from "./Page/Login/ForgotPassword";
 import HomePage from "./Page/Home/HomePage";
 import AdminDashboard from "../../server/src/Admin/AdminDashboard";
 import User from "./components/User";
+import UserInfo from "./Page/UserInfo/UserInfo";
+import ChangePassword from "./Page/ChangePassword/ChangePassword";
+import MyCourses from "./Page/MyCourses/MyCourses";
+import AccountSettings from "./Page/AccountSettings/AccountSettings";
 import "bootstrap";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -31,6 +35,16 @@ const App = () => {
                 <Routes>
                     <Route path="/" element={<User />}>
                         <Route index element={<HomePage />} />
+                        <Route path="user-info" element={<UserInfo />} />
+                        <Route
+                            path="change-password"
+                            element={<ChangePassword />}
+                        />
+                        <Route path="my-courses" element={<MyCourses />} />
+                        <Route
+                            path="account-settings"
+                            element={<AccountSettings />}
+                        />
                     </Route>
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />

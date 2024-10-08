@@ -1,80 +1,126 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Menu, Breadcrumb, theme, Card } from "antd"; // Thêm Card từ Ant Design
+import { Layout, Menu, Breadcrumb, theme, Card, message } from "antd";
 import {
     LaptopOutlined,
     NotificationOutlined,
     UserOutlined,
 } from "@ant-design/icons";
-import "./HomePage.scss"; // Import file SCSS
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
+import "./HomePage.scss";
 import Loader from "../../context/Loader";
 
-const { Header, Content, Sider } = Layout;
+const { Content, Sider } = Layout;
 
 const HomePage = () => {
-    const [courses, setCourses] = useState([]); // Trạng thái để lưu trữ danh sách khóa học
-    const [loading, setLoading] = useState(true); // Trạng thái để kiểm soát việc tải
+    const [courses, setCourses] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         const fetchCourses = async () => {
             try {
-                const response = await fetch(
+                setLoading(true);
+                const response = await axios.get(
                     "http://localhost:9000/api/courses"
                 );
-                const data = await response.json();
-                setCourses(data); // Cập nhật trạng thái với danh sách khóa học
-                setLoading(false); // Đặt trạng thái loading thành false khi hoàn tất
-            } catch (error) {
-                console.error("Lỗi khi lấy dữ liệu khóa học:", error);
-                setLoading(false); // Đảm bảo trạng thái loading được đặt thành false ngay cả khi có lỗi
+                setCourses(response.data);
+                setError(null);
+            } catch (err) {
+                console.error("Error fetching courses:", err);
+                setError("Failed to load courses. Please try again later.");
+                message.error(
+                    "Failed to load courses. Please try again later."
+                );
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchCourses();
-    }, []); // Chạy một lần khi component được mount
+    }, []);
 
-    // Dữ liệu cho menu chính
-    // const menuNames = ["Trang chủ", "Danh sách khóa học", "Liên hệ"];
+    const handleMenuClick = (path) => {
+        navigate(path);
+    };
 
-    // const items1 = ["1", "2", "3"].map((key, index) => ({
-    //     key,
-    //     label: menuNames[index],
-    // }));
-
-    // Dữ liệu cho menu bên trái
     const items2 = [UserOutlined, LaptopOutlined, NotificationOutlined].map(
         (icon, index) => {
             const key = String(index + 1);
             const menuLabels = ["Tài khoản", "Khóa học", "Thông báo"];
             const submenuLabels = {
                 0: [
-                    "Thông tin cá nhân",
-                    "Đổi mật khẩu",
-                    "Khóa học của tôi",
-                    "Cài đặt tài khoản",
-                ], // Tài khoản
-                1: ["Khóa học của tôi", "Khóa học mới", "Khóa học yêu thích"], // Khóa học
-                2: ["Thông báo mới", "Thông báo quan trọng", "Thông báo khác"], // Thông báo
+                    { label: "Thông tin cá nhân", path: "user-info" },
+                    { label: "Đổi mật khẩu", path: "change-password" },
+                    { label: "Khóa học của tôi", path: "my-courses" },
+                    { label: "Cài đặt tài khoản", path: "account-settings" },
+                ],
+                1: [
+                    { label: "Khóa học của tôi", path: "my-courses" },
+                    { label: "Khóa học mới", path: "/" },
+                    { label: "Khóa học yêu thích", path: "/" },
+                ],
+                2: [
+                    { label: "Thông báo mới", path: "/" },
+                    { label: "Thông báo quan trọng", path: "/" },
+                    { label: "Thông báo khác", path: "/" },
+                ],
             };
             return {
                 key: `sub${key}`,
                 icon: React.createElement(icon),
-                label: menuLabels[index], // Thay đổi label thành "Tài khoản", "Khóa học", "Thông báo"
+                label: menuLabels[index],
                 children: submenuLabels[index]
-                    ? submenuLabels[index].map((label, j) => {
+                    ? submenuLabels[index].map((item, j) => {
                           const subKey = index * 4 + j + 1;
                           return {
                               key: subKey,
-                              label, // Use the label from the submenuLabels array
+                              label: item.label,
+                              onClick: () => handleMenuClick(item.path),
                           };
                       })
-                    : [], // Trả về một mảng rỗng nếu submenuLabels[index] là undefined
+                    : [],
             };
         }
     );
 
     const {
-        token: { colorBgContainer, borderRadiusLG },
+        token: { colorBgContainer },
     } = theme.useToken();
+
+    const renderHomeContent = () => {
+        if (loading) {
+            return <Loader />;
+        }
+
+        if (error) {
+            return <div className="error-message">{error}</div>;
+        }
+
+        return (
+            <div className="course-list">
+                {courses.map((course) => (
+                    <Card
+                        key={course.id}
+                        cover={
+                            <img
+                                alt={course.title}
+                                src="https://files.fullstack.edu.vn/f8-prod/courses/15/62f13d2424a47.png"
+                            />
+                        }
+                        style={{ marginBottom: "16px" }}
+                    >
+                        <h5>{course.title}</h5>
+                        <p>{course.description}</p>
+                        <p>Price: ${course.price}</p>
+                        <p>Level: {course.level}</p>
+                    </Card>
+                ))}
+            </div>
+        );
+    };
 
     return (
         <Layout>
@@ -107,28 +153,10 @@ const HomePage = () => {
                         ]}
                     />
                     <Content className="content">
-                        {loading ? ( // Hiển thị loading nếu đang tải
-                            <Loader/>
+                        {location.pathname === "/" ? (
+                            renderHomeContent()
                         ) : (
-                            <div className="course-list">
-                                {courses.map((course) => (
-                                    <Card
-                                        key={course.id}
-                                        cover={
-                                            <img
-                                                alt={course.title}
-                                                src="https://files.fullstack.edu.vn/f8-prod/courses/15/62f13d2424a47.png"
-                                            />
-                                        } // Thêm hình ảnh vào card
-                                        style={{ marginBottom: "16px" }}
-                                    >
-                                        <h5>{course.title}</h5>
-                                        <p>{course.description}</p>
-                                        <p>Giá: ${course.price}</p>
-                                        <p>Trình độ: {course.level}</p>
-                                    </Card>
-                                ))}
-                            </div>
+                            <Outlet />
                         )}
                     </Content>
                 </Layout>
