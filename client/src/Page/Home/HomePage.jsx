@@ -6,6 +6,7 @@ import {
     UserOutlined,
 } from "@ant-design/icons";
 import "./HomePage.scss"; // Import file SCSS
+import Loader from "../../context/Loader";
 
 const { Header, Content, Sider } = Layout;
 
@@ -107,7 +108,7 @@ const HomePage = () => {
                     />
                     <Content className="content">
                         {loading ? ( // Hiển thị loading nếu đang tải
-                            <div>Đang tải khóa học...</div>
+                            <Loader/>
                         ) : (
                             <div className="course-list">
                                 {courses.map((course) => (

@@ -104,7 +104,7 @@ const Header = () => {
                             />
                             <span>{user.username}</span>
                         </button>
-                        {dropdownActive && ( // Kiểm tra dropdownActive để hiển thị menu
+                        {/* {dropdownActive && ( // Kiểm tra dropdownActive để hiển thị menu
                             <div
                                 className={`dropdown-menu ${
                                     dropdownActive ? "active" : ""
@@ -148,7 +148,7 @@ const Header = () => {
                                     </li>
                                 </ul>
                             </div>
-                        )}
+                        )} */}
                     </div>
                 ) : (
                     <>

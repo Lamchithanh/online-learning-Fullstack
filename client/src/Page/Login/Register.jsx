@@ -29,7 +29,7 @@ const Register = () => {
                 }
             );
             toast.success("Registration successful! Please log in.");
-            navigate("/");
+            navigate("/login");
         } catch (error) {
             toast.error(
                 error.response?.data?.error ||
@@ -40,6 +40,9 @@ const Register = () => {
 
     return (
         <div className="container">
+            <button className="btn-signin" onClick={() => navigate(-1)}>
+                Quay lại
+            </button>
             <form className="form-Register" onSubmit={handleSubmit}>
                 <h2 className="title-Register">Create an Account</h2>
                 <input

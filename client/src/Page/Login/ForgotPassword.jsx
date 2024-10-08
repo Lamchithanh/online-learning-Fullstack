@@ -23,6 +23,9 @@ const ForgotPassword = () => {
 
     return (
         <div className="container">
+            <button className="btn-signin" onClick={() => navigate(-1)}>
+                Quay lại
+            </button>
             <form className="form-forgot-password" onSubmit={handleSubmit}>
                 <h2>Forgot Password</h2>
                 <input
