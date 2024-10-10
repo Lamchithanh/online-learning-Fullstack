@@ -1,6 +1,16 @@
 // Users.js
 import React, { useState, useMemo } from "react";
-import { Table, Button, Modal, Form, Input, Select, Spin, message } from "antd";
+import {
+    Table,
+    Button,
+    Modal,
+    Form,
+    Input,
+    Select,
+    Spin,
+    message,
+    Switch,
+} from "antd"; // Thêm Switch để khóa/mở khóa tài khoản
 import axios from "axios";
 import { useDataFetching } from "../UseDataFetching/useDataFetching";
 
@@ -75,6 +85,30 @@ const Users = ({ fetchUsers }) => {
             { title: "Email", dataIndex: "email", key: "email" },
             { title: "Role", dataIndex: "role", key: "role" },
             {
+                title: "Registered Courses",
+                dataIndex: "registeredCourses",
+                key: "registeredCourses",
+            },
+            { title: "Progress", dataIndex: "progress", key: "progress" },
+            {
+                title: "Certificates",
+                dataIndex: "certificates",
+                key: "certificates",
+            },
+            {
+                title: "Account Locked",
+                dataIndex: "isLocked",
+                key: "isLocked",
+                render: (text, record) => (
+                    <Switch
+                        checked={record.isLocked}
+                        onChange={() =>
+                            toggleAccountLock(record.id, !record.isLocked)
+                        }
+                    />
+                ),
+            },
+            {
                 title: "Action",
                 key: "action",
                 render: (_, record) => (
@@ -101,6 +135,26 @@ const Users = ({ fetchUsers }) => {
         []
     );
 
+    const toggleAccountLock = async (userId, isLocked) => {
+        try {
+            const token = localStorage.getItem("token");
+            await axios.put(
+                `http://localhost:9000/api/users/${userId}/lock`,
+                { isLocked },
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+            message.success(
+                `User account ${isLocked ? "locked" : "unlocked"} successfully`
+            );
+            setUsers(await fetchUsers());
+        } catch (error) {
+            console.error("Error updating account lock status:", error);
+            message.error("Unable to update account lock status");
+        }
+    };
+
     return (
         <div>
             <Button
@@ -113,6 +167,7 @@ const Users = ({ fetchUsers }) => {
                 <Table columns={userColumns} dataSource={users} rowKey="id" />
             </Spin>
 
+            {/* Modal thêm người dùng */}
             <Modal
                 title="Add New User"
                 visible={isUserModalVisible}
@@ -169,11 +224,13 @@ const Users = ({ fetchUsers }) => {
                         <Select>
                             <Option value="student">Student</Option>
                             <Option value="instructor">Instructor</Option>
+                            <Option value="admin">Admin</Option>
                         </Select>
                     </Form.Item>
                 </Form>
             </Modal>
 
+            {/* Modal chỉnh sửa người dùng */}
             <Modal
                 title="Edit User"
                 visible={isUserEditModalVisible}
@@ -218,6 +275,7 @@ const Users = ({ fetchUsers }) => {
                         <Select>
                             <Option value="student">Student</Option>
                             <Option value="instructor">Instructor</Option>
+                            <Option value="admin">Admin</Option>
                         </Select>
                     </Form.Item>
                 </Form>

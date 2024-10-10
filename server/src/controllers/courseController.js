@@ -21,8 +21,7 @@ exports.addCourse = (req, res) => {
 
     const query = `
         INSERT INTO courses (title, description, instructor_id, price, level, category)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING *;
+        VALUES (?, ?, ?, ?, ?, ?)
     `;
 
     const values = [title, description, instructor_id, price, level, category];
@@ -32,7 +31,15 @@ exports.addCourse = (req, res) => {
             console.error("Error adding course:", err);
             return res.status(500).json({ error: "Internal server error" });
         }
-        res.status(201).json(results.rows[0]); // Trả về khóa học vừa được thêm
+        res.status(201).json({
+            id: results.insertId,
+            title,
+            description,
+            instructor_id,
+            price,
+            level,
+            category,
+        }); // Trả về khóa học vừa được thêm
     });
 };
 
@@ -44,9 +51,8 @@ exports.updateCourse = (req, res) => {
 
     const query = `
         UPDATE courses
-        SET title = $1, description = $2, instructor_id = $3, price = $4, level = $5, category = $6
-        WHERE id = $7
-        RETURNING *;
+        SET title = ?, description = ?, instructor_id = ?, price = ?, level = ?, category = ?
+        WHERE id = ?
     `;
 
     const values = [
@@ -64,10 +70,24 @@ exports.updateCourse = (req, res) => {
             console.error("Error updating course:", err);
             return res.status(500).json({ error: "Internal server error" });
         }
-        if (results.rowCount === 0) {
+        if (results.affectedRows === 0) {
             return res.status(404).json({ error: "Course not found" });
         }
-        res.json(results.rows[0]); // Trả về khóa học đã được cập nhật
+
+        // Lấy dữ liệu khóa học sau khi đã cập nhật
+        pool.query(
+            "SELECT * FROM courses WHERE id = ?",
+            [courseId],
+            (err, updatedResults) => {
+                if (err) {
+                    console.error("Error fetching updated course:", err);
+                    return res
+                        .status(500)
+                        .json({ error: "Internal server error" });
+                }
+                res.json(updatedResults[0]); // Trả về khóa học đã được cập nhật
+            }
+        );
     });
 };
 
@@ -75,14 +95,14 @@ exports.updateCourse = (req, res) => {
 exports.deleteCourse = (req, res) => {
     const { courseId } = req.params;
 
-    const query = `DELETE FROM courses WHERE id = $1 RETURNING *;`;
+    const query = `DELETE FROM courses WHERE id = ?`;
 
     pool.query(query, [courseId], (err, results) => {
         if (err) {
             console.error("Error deleting course:", err);
             return res.status(500).json({ error: "Internal server error" });
         }
-        if (results.rowCount === 0) {
+        if (results.affectedRows === 0) {
             return res.status(404).json({ error: "Course not found" });
         }
         res.json({ message: "Course deleted successfully" });
@@ -96,8 +116,7 @@ exports.addLesson = (req, res) => {
 
     const query = `
         INSERT INTO lessons (course_id, title, content, video_url, order_index)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING *;
+        VALUES (?, ?, ?, ?, ?)
     `;
 
     const values = [courseId, title, content, video_url, order_index];
@@ -107,7 +126,7 @@ exports.addLesson = (req, res) => {
             console.error("Error adding lesson:", err);
             return res.status(500).json({ error: "Internal server error" });
         }
-        res.status(201).json(results.rows[0]); // Trả về bài học vừa được thêm
+        res.status(201).json(results); // Trả về bài học vừa được thêm
     });
 };
 
@@ -116,14 +135,14 @@ exports.getLessons = (req, res) => {
     const { courseId } = req.params;
 
     pool.query(
-        "SELECT * FROM lessons WHERE course_id = $1",
+        "SELECT * FROM lessons WHERE course_id = ?",
         [courseId],
         (err, results) => {
             if (err) {
                 console.error("Error fetching lessons:", err);
                 return res.status(500).json({ error: "Internal server error" });
             }
-            res.json(results.rows); // Trả về danh sách bài học
+            res.json(results); // Trả về danh sách bài học
         }
     );
 };
