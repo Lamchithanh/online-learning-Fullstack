@@ -13,6 +13,7 @@ import {
 } from "antd"; // Thêm Switch để khóa/mở khóa tài khoản
 import axios from "axios";
 import { useDataFetching } from "../UseDataFetching/useDataFetching";
+import Loader from "../../../../client/src/context/Loader";
 
 const { Option } = Select;
 
@@ -163,10 +164,9 @@ const Users = ({ fetchUsers }) => {
             >
                 Add New User
             </Button>
-            <Spin spinning={usersLoading}>
-                <Table columns={userColumns} dataSource={users} rowKey="id" />
-            </Spin>
-
+            {usersLoading ? <Loader /> :<Table columns={userColumns} dataSource={users} rowKey="id" />}
+                
+         
             {/* Modal thêm người dùng */}
             <Modal
                 title="Add New User"

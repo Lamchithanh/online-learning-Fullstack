@@ -45,7 +45,7 @@ exports.addCourse = (req, res) => {
 
 // Cập nhật thông tin khóa học
 exports.updateCourse = (req, res) => {
-    const { courseId } = req.params;
+    const { id } = req.params; // Thay đổi ở đây
     const { title, description, instructor_id, price, level, category } =
         req.body;
 
@@ -62,7 +62,7 @@ exports.updateCourse = (req, res) => {
         price,
         level,
         category,
-        courseId,
+        id, // Sử dụng id ở đây
     ];
 
     pool.query(query, values, (err, results) => {
@@ -77,7 +77,7 @@ exports.updateCourse = (req, res) => {
         // Lấy dữ liệu khóa học sau khi đã cập nhật
         pool.query(
             "SELECT * FROM courses WHERE id = ?",
-            [courseId],
+            [id], // Sử dụng id ở đây
             (err, updatedResults) => {
                 if (err) {
                     console.error("Error fetching updated course:", err);

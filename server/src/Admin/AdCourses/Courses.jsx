@@ -19,15 +19,23 @@ const Courses = ({ fetchCourses }) => {
     const [courseForm] = Form.useForm();
 
     const addCourse = async (values) => {
+        console.log("Adding course with values:", values);
         try {
             const token = localStorage.getItem("token");
-            await axios.post("http://localhost:9000/api/courses", values, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const response = await axios.post(
+                "http://localhost:9000/api/courses",
+                values,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
             message.success("Course added successfully");
+
             setIsCourseModalVisible(false);
             courseForm.resetFields();
-            setCourses(await fetchCourses());
+
+            console.log("Modal visibility status:", isCourseModalVisible); // Kiểm tra trạng thái
+            setCourses((prevCourses) => [...prevCourses, response.data]);
         } catch (error) {
             console.error("Error adding course:", error);
             message.error("Unable to add course");
@@ -37,7 +45,7 @@ const Courses = ({ fetchCourses }) => {
     const editCourse = async (values) => {
         try {
             const token = localStorage.getItem("token");
-            await axios.put(
+            const response = await axios.put(
                 `http://localhost:9000/api/courses/${courseToEdit.id}`,
                 values,
                 {
@@ -47,7 +55,12 @@ const Courses = ({ fetchCourses }) => {
             message.success("Course updated successfully");
             setIsCourseEditModalVisible(false);
             courseForm.resetFields();
-            setCourses(await fetchCourses());
+            // Cập nhật state courses với khóa học đã được sửa
+            setCourses((prevCourses) =>
+                prevCourses.map((course) =>
+                    course.id === courseToEdit.id ? response.data : course
+                )
+            );
         } catch (error) {
             console.error("Error updating course:", error);
             message.error("Unable to update course");
@@ -64,7 +77,10 @@ const Courses = ({ fetchCourses }) => {
                 }
             );
             message.success("Course deleted successfully");
-            setCourses(await fetchCourses());
+            // Cập nhật state courses bằng cách loại bỏ khóa học đã xóa
+            setCourses((prevCourses) =>
+                prevCourses.filter((course) => course.id !== courseId)
+            );
         } catch (error) {
             console.error("Error deleting course:", error);
             message.error("Unable to delete course");
@@ -88,6 +104,7 @@ const Courses = ({ fetchCourses }) => {
                             setCourseToEdit(record);
                             setIsCourseEditModalVisible(true);
                             courseForm.setFieldsValue(record);
+                            console.log("Editing course:", record);
                         }}
                     >
                         Edit
