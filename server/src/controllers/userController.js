@@ -85,16 +85,20 @@ exports.forgotPassword = (req, res) => {
     // Implement forgot password logic here
 };
 
-exports.getAllUsers = (req, res) => {
-    pool.query("SELECT * FROM users WHERE role != 'admin'", (err, results) => {
-        if (err) {
-            console.error("Database query error:", err);
-            return res.status(500).json({ error: "Internal server error" });
-        }
+exports.getAllUsers = async (req, res) => {
+    try {
+        const results = await pool.query(
+            "SELECT * FROM users WHERE role != 'admin'"
+        );
         res.json(results);
-    });
+    } catch (err) {
+        console.error("Database query error:", err);
+        res.status(500).json({
+            error: "Internal server error",
+            message: err.message,
+        });
+    }
 };
-
 exports.logout = (req, res) => {
     // Implement logout logic here
 };

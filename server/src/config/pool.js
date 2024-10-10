@@ -10,4 +10,14 @@ const pool = mysql.createPool({
     queueLimit: 0,
 });
 
+// Kiểm tra kết nối
+pool.getConnection()
+    .then((connection) => {
+        console.log("Đã thiết lập kết nối cơ sở dữ liệu.");
+        connection.release(); // Giải phóng kết nối sau khi kiểm tra
+    })
+    .catch((err) => {
+        console.error("Lỗi kết nối với cơ sở dữ liệu:", err);
+    });
+
 module.exports = pool;

@@ -46,7 +46,7 @@ const Header = () => {
                         alt="classroom"
                     />
                 </span>
-                <span className="logo-text">Học Lập Trình Để Đi Làm</span>
+                <span className="logo-text">Làm để qua đồ án</span>
             </div>
             <div className="header__search">
                 <input
@@ -78,45 +78,6 @@ const Header = () => {
                                 alt="exit"
                             />
                         </button>
-                        <div className="dropdown-menu">
-                            <ul>
-                                <li
-                                    onClick={() =>
-                                        handleMenuItemClick("profile")
-                                    }
-                                >
-                                    Trang cá nhân
-                                </li>
-                                <li
-                                    onClick={() =>
-                                        handleMenuItemClick("write-blog")
-                                    }
-                                >
-                                    Viết blog
-                                </li>
-                                <li
-                                    onClick={() =>
-                                        handleMenuItemClick("my-posts")
-                                    }
-                                >
-                                    Bài viết của tôi
-                                </li>
-                                <li
-                                    onClick={() =>
-                                        handleMenuItemClick("saved-posts")
-                                    }
-                                >
-                                    Bài viết đã lưu
-                                </li>
-                                <li
-                                    onClick={() =>
-                                        handleMenuItemClick("settings")
-                                    }
-                                >
-                                    Cài đặt
-                                </li>
-                            </ul>
-                        </div>
                     </div>
                 ) : (
                     <>

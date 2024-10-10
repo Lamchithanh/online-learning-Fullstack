@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "../Login/Login.scss";
 import "bootstrap";
 import { login } from "../../../../server/src/api"; // Import hàm login từ api.js (đã điều chỉnh)
@@ -44,6 +44,7 @@ const Login = () => {
             <button className="btn-signin" onClick={() => navigate(-1)}>
                 Quay lại
             </button>
+
             <form className="form-signin container" onSubmit={handleSubmit}>
                 <p className="title-signin">Đăng nhập vào tài khoản của bạn</p>
 
@@ -68,11 +69,14 @@ const Login = () => {
                 <button className="btn-signin" type="submit">
                     Đăng nhập
                 </button>
+
                 <p>
                     <Link to="/register">Tạo tài khoản mới</Link> |{" "}
                     <Link to="/forgot-password">Quên mật khẩu?</Link>
                 </p>
             </form>
+            <ToastContainer           
+            />
         </div>
     );
 };

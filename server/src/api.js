@@ -1,22 +1,37 @@
 import axios from "axios";
 
 const API_URL = "http://localhost:9000/api";
+// const { getAuthHeader } = require("./middleware/auth"); // Đường dẫn chính xác đến file auth.js
 
-// Lấy token từ localStorage và tạo header cho các yêu cầu cần xác thực
 const getAuthHeader = () => {
-    const token = localStorage.getItem("token");
-    return { Authorization: `Bearer ${token}` };
-};
-
+    const user = JSON.parse(localStorage.getItem("user"));
+    return user && user.token ? { Authorization: `Bearer ${user.token}` } : {};
+  };
 // Đăng nhập người dùng
+// export const login = async (email, password) => {
+//     const response = await axios.post(`${API_URL}/users/login`, {
+//         email,
+//         password,
+//     });
+//     return response.data;
+// };
+
 export const login = async (email, password) => {
-    const response = await axios.post(`${API_URL}/users/login`, {
+    try {
+      const response = await axios.post(`${API_URL}/users/login`, {
         email,
         password,
-    });
-    return response.data;
-};
-
+      });
+      if (response.data.token) {
+        localStorage.setItem("user", JSON.stringify(response.data));
+      }
+      return response.data;
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    }
+  };
+  
 // Đăng ký người dùng mới
 export const register = async (userData) => {
     try {
@@ -41,11 +56,16 @@ export const fetchUsers = async () => {
 
 // Lấy danh sách khóa học
 export const fetchCourses = async () => {
-    const response = await axios.get(`${API_URL}/courses`, {
-        headers: getAuthHeader(),
-    });
-    return response.data;
-};
+    try {
+      const response = await axios.get(`${API_URL}/courses`, {
+        headers: getAuthHeader()
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      throw error;
+    }
+  };
 
 // Thêm khóa học mới (chỉ instructor hoặc admin mới có quyền)
 export const addCourse = async (courseData) => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react"; // Thêm useCallback
 import {
     Layout,
     Menu,
@@ -9,6 +9,7 @@ import {
     Input,
     Select,
     message,
+    Spin,
 } from "antd";
 import { UserOutlined, BookOutlined } from "@ant-design/icons";
 import axios from "axios";
@@ -16,49 +17,62 @@ import axios from "axios";
 const { Header, Content, Sider } = Layout;
 const { Option } = Select;
 
+const useDataFetching = (fetchFunction, errorMessage) => {
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true); // Đặt loading là true mỗi lần fetch
+            try {
+                const result = await fetchFunction();
+                setData(result);
+            } catch (error) {
+                console.error(error);
+                message.error(errorMessage);
+            } finally {
+                setLoading(false); // Đặt loading là false khi fetch hoàn thành
+            }
+        };
+
+        fetchData();
+    }, [fetchFunction, errorMessage]);
+
+    return { data, loading, setData };
+};
+
 const AdminDashboard = () => {
     const [selectedMenu, setSelectedMenu] = useState("users");
-    const [users, setUsers] = useState([]);
-    const [courses, setCourses] = useState([]);
     const [isUserModalVisible, setIsUserModalVisible] = useState(false);
     const [isUserEditModalVisible, setIsUserEditModalVisible] = useState(false);
     const [userToEdit, setUserToEdit] = useState(null);
-    const [isCourseModalVisible, setIsCourseModalVisible] = useState(false);
     const [userForm] = Form.useForm();
-    const [courseForm] = Form.useForm();
 
-    useEffect(() => {
-        fetchUsers();
-        fetchCourses();
+    const fetchUsers = useCallback(async () => {
+        // Sử dụng useCallback
+        const token = localStorage.getItem("token");
+        const response = await axios.get("http://localhost:9000/api/users", {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
     }, []);
 
-    const fetchUsers = async () => {
-        try {
-            const token = localStorage.getItem("token");
-            const response = await axios.get(
-                "http://localhost:9000/api/users",
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
-            );
-            setUsers(response.data);
-        } catch (error) {
-            console.error("Error fetching users:", error);
-            message.error("Unable to load users");
-        }
-    };
+    const fetchCourses = useCallback(async () => {
+        // Sử dụng useCallback
+        const response = await axios.get("http://localhost:9000/api/courses");
+        return response.data;
+    }, []);
 
-    const fetchCourses = async () => {
-        try {
-            const response = await axios.get(
-                "http://localhost:9000/api/courses"
-            );
-            setCourses(response.data);
-        } catch (error) {
-            console.error("Error fetching courses:", error);
-            message.error("Unable to load courses");
-        }
-    };
+    const {
+        data: users,
+        loading: usersLoading,
+        setData: setUsers,
+    } = useDataFetching(fetchUsers, "Unable to load users");
+
+    const { data: courses, loading: coursesLoading } = useDataFetching(
+        fetchCourses,
+        "Unable to load courses"
+    );
 
     const addUser = async (values) => {
         try {
@@ -69,7 +83,7 @@ const AdminDashboard = () => {
             message.success("User added successfully");
             setIsUserModalVisible(false);
             userForm.resetFields();
-            fetchUsers();
+            setUsers(await fetchUsers()); // Cập nhật người dùng mới
         } catch (error) {
             console.error("Error adding user:", error);
             message.error("Unable to add user");
@@ -89,7 +103,7 @@ const AdminDashboard = () => {
             message.success("User updated successfully");
             setIsUserEditModalVisible(false);
             userForm.resetFields();
-            fetchUsers();
+            setUsers(await fetchUsers()); // Cập nhật người dùng sau khi sửa
         } catch (error) {
             console.error("Error updating user:", error);
             message.error("Unable to update user");
@@ -103,74 +117,84 @@ const AdminDashboard = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
             message.success("User deleted successfully");
-            fetchUsers();
+            setUsers(await fetchUsers()); // Cập nhật danh sách người dùng
         } catch (error) {
             console.error("Error deleting user:", error);
             message.error("Unable to delete user");
         }
     };
 
-    const userColumns = [
-        { title: "ID", dataIndex: "id", key: "id" },
-        { title: "Username", dataIndex: "username", key: "username" },
-        { title: "Email", dataIndex: "email", key: "email" },
-        { title: "Role", dataIndex: "role", key: "role" },
-        {
-            title: "Action",
-            key: "action",
-            render: (_, record) => (
-                <>
-                    <Button
-                        onClick={() => {
-                            setUserToEdit(record);
-                            setIsUserEditModalVisible(true);
-                            userForm.setFieldsValue(record);
-                        }}
-                    >
-                        Edit
-                    </Button>
-                    <Button
-                        onClick={() => deleteUser(record.id)}
-                        style={{ marginLeft: 8 }}
-                    >
-                        Delete
-                    </Button>
-                </>
-            ),
-        },
-    ];
+    const userColumns = useMemo(
+        () => [
+            { title: "ID", dataIndex: "id", key: "id" },
+            { title: "Username", dataIndex: "username", key: "username" },
+            { title: "Email", dataIndex: "email", key: "email" },
+            { title: "Role", dataIndex: "role", key: "role" },
+            {
+                title: "Action",
+                key: "action",
+                render: (_, record) => (
+                    <>
+                        <Button
+                            onClick={() => {
+                                setUserToEdit(record);
+                                setIsUserEditModalVisible(true);
+                                userForm.setFieldsValue(record);
+                            }}
+                        >
+                            Edit
+                        </Button>
+                        <Button
+                            onClick={() => deleteUser(record.id)}
+                            style={{ marginLeft: 8 }}
+                        >
+                            Delete
+                        </Button>
+                    </>
+                ),
+            },
+        ],
+        []
+    );
 
-    const courseColumns = [
-        { title: "ID", dataIndex: "id", key: "id" },
-        { title: "Title", dataIndex: "title", key: "title" },
-        { title: "Description", dataIndex: "description", key: "description" },
-        { title: "Price", dataIndex: "price", key: "price" },
-        { title: "Level", dataIndex: "level", key: "level" },
-        { title: "Category", dataIndex: "category", key: "category" },
-        {
-            title: "Action",
-            key: "action",
-            render: (_, record) => (
-                <>
-                    <Button
-                        onClick={() => {
-                            // Implement course edit functionality
-                        }}
-                    >
-                        Edit
-                    </Button>
-                    <Button
-                        onClick={() => {
-                            // Implement course delete functionality
-                        }}
-                        style={{ marginLeft: 8 }}
-                    >
-                        Delete
-                    </Button>
-                </>
-            ),
-        },
-    ];
+    const courseColumns = useMemo(
+        () => [
+            { title: "ID", dataIndex: "id", key: "id" },
+            { title: "Title", dataIndex: "title", key: "title" },
+            {
+                title: "Description",
+                dataIndex: "description",
+                key: "description",
+            },
+            { title: "Price", dataIndex: "price", key: "price" },
+            { title: "Level", dataIndex: "level", key: "level" },
+            { title: "Category", dataIndex: "category", key: "category" },
+            {
+                title: "Action",
+                key: "action",
+                render: (_, record) => (
+                    <>
+                        <Button
+                            onClick={() => {
+                                /* Implement course edit functionality */
+                            }}
+                        >
+                            Edit
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                /* Implement course delete functionality */
+                            }}
+                            style={{ marginLeft: 8 }}
+                        >
+                            Delete
+                        </Button>
+                    </>
+                ),
+            },
+        ],
+        []
+    );
 
     return (
         <Layout style={{ minHeight: "100vh" }}>
@@ -195,10 +219,15 @@ const AdminDashboard = () => {
                         style={{ float: "right", margin: "16px" }}
                         onClick={() => {
                             localStorage.removeItem("token");
-                            window.location.href = "/login";
+                            window.location.href = "/";
                         }}
                     >
-                        Logout
+                        <img
+                            width="32"
+                            height="32"
+                            src="https://img.icons8.com/stencil/32/exit.png"
+                            alt="exit"
+                        />
                     </Button>
                     <h2 style={{ margin: "0 16px" }}>Admin Dashboard</h2>
                 </Header>
@@ -217,27 +246,23 @@ const AdminDashboard = () => {
                             >
                                 Add New User
                             </Button>
-                            <Table
-                                columns={userColumns}
-                                dataSource={users}
-                                rowKey="id"
-                            />
+                            <Spin spinning={usersLoading}>
+                                <Table
+                                    columns={userColumns}
+                                    dataSource={users}
+                                    rowKey="id"
+                                />
+                            </Spin>
                         </>
                     )}
                     {selectedMenu === "courses" && (
-                        <>
-                            <Button
-                                onClick={() => setIsCourseModalVisible(true)}
-                                style={{ marginBottom: 16 }}
-                            >
-                                Add New Course
-                            </Button>
+                        <Spin spinning={coursesLoading}>
                             <Table
                                 columns={courseColumns}
                                 dataSource={courses}
                                 rowKey="id"
                             />
-                        </>
+                        </Spin>
                     )}
                 </Content>
             </Layout>
@@ -351,8 +376,6 @@ const AdminDashboard = () => {
                     </Form.Item>
                 </Form>
             </Modal>
-
-            {/* Implement Course Modal here */}
         </Layout>
     );
 };

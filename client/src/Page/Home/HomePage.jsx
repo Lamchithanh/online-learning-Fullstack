@@ -6,9 +6,9 @@ import {
     UserOutlined,
 } from "@ant-design/icons";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
 import "./HomePage.scss";
 import Loader from "../../context/Loader";
+import { fetchCourses } from "../../../../server/src/api"; // Đường dẫn tới file API
 
 const { Content, Sider } = Layout;
 
@@ -20,26 +20,22 @@ const HomePage = () => {
     const location = useLocation();
 
     useEffect(() => {
-        const fetchCourses = async () => {
+        const fetchCoursesData = async () => {
             try {
-                setLoading(true);
-                const response = await axios.get(
-                    "http://localhost:9000/api/courses"
-                );
-                setCourses(response.data);
-                setError(null);
+                const courses = await fetchCourses();
+                setCourses(courses);
             } catch (err) {
-                console.error("Error fetching courses:", err);
-                setError("Failed to load courses. Please try again later.");
-                message.error(
-                    "Failed to load courses. Please try again later."
+                console.error("Lỗi khi tải danh sách khóa học:", err);
+                setError(
+                    "Lỗi khi tải danh sách khóa học. Vui lòng thử lại sau."
                 );
-            } finally {
-                setLoading(false);
+                message.error(
+                    "Lỗi khi tải danh sách khóa học. Vui lòng thử lại sau."
+                );
             }
         };
 
-        fetchCourses();
+        fetchCoursesData();
     }, []);
 
     const handleMenuClick = (path) => {

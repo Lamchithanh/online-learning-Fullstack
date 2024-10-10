@@ -3,26 +3,29 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 require("dotenv").config();
 
-const userRoutes = require("./routes/userRoutes ");
+// Đảm bảo đường dẫn đến các routes là chính xác
+const userRoutes = require("./routes/userRoutes.js");
 const courseRoutes = require("./routes/courseRoutes");
-const { verifyToken } = require("./middleware/auth");
 
 const app = express();
 const port = process.env.PORT || 9000;
 
-app.use(cors());
+// Cấu hình CORS
+app.use(
+    cors({
+        origin: "http://localhost:5173", // Thay đổi thành URL của frontend
+        credentials: true, // Nếu cần thiết
+    })
+);
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
 app.use(bodyParser.json());
 
-// Apply verifyToken middleware to all routes except login and register
-app.use("/api/users", (req, res, next) => {
-    if (req.path === "/login" || req.path === "/register") {
-        return next();
-    }
-    verifyToken(req, res, next);
-});
-
+// Bỏ qua xác thực token cho tất cả các route
 app.use("/api/users", userRoutes);
-app.use("/api/courses", verifyToken, courseRoutes);
+app.use("/api/courses", courseRoutes);
 
 app.listen(port, () => {
     console.log(`Máy chủ đang chạy trên cổng ${port}`);
