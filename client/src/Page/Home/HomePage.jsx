@@ -87,13 +87,13 @@ const HomePage = () => {
     } = theme.useToken();
 
     const renderHomeContent = () => {
-        if (loading) {
-            return <Loader />;
-        }
+        // if (loading) {
+        //     return <Loader />;
+        // }
 
-        if (error) {
-            return <div className="error-message">{error}</div>;
-        }
+        // if (error) {
+        //     return <div className="error-message">{error}</div>;
+        // }
 
         return (
             <div className="course-list">

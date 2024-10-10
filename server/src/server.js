@@ -24,8 +24,8 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 
 // Bỏ qua xác thực token cho tất cả các route
-app.use("/api/users", userRoutes);
-app.use("/api/courses", courseRoutes);
+app.use("/api", userRoutes);
+app.use("/api", courseRoutes);
 
 app.listen(port, () => {
     console.log(`Máy chủ đang chạy trên cổng ${port}`);

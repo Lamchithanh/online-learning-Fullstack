@@ -1,18 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const courseController = require("../controllers/courseController");
+const { getAllUsers } = require("../controllers/userController");
 // Không cần import isAdmin nếu không sử dụng xác thực
 
 // Các route không cần xác thực
-router.get("/courses", async (req, res) => {
-    try {
-        const courses = await courseController.getAllCourses();
-        res.json(courses);
-    } catch (error) {
-        console.error("Error fetching courses:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
+router.get("/courses",courseController.getAllCourses);
 router.post("/courses", courseController.addCourse); // Thêm khóa học
 router.put("/:courseId", courseController.updateCourse); // Cập nhật khóa học
 router.delete("/:courseId", courseController.deleteCourse); // Xóa khóa học

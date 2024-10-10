@@ -1,16 +1,14 @@
 const pool = require("../config/pool"); // Đảm bảo rằng đường dẫn này đúng
 const connection = require("../config/pool"); // Import kết nối cơ sở dữ liệu
-
+const jwt = require('jsonwebtoken');
 // truy xuất dữ liệu và đăng nhập
+
+
 exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        // Truy vấn để lấy thông tin người dùng theo email
-        const [results] = await pool.query(
-            "SELECT * FROM users WHERE email = ?",
-            [email]
-        );
+        const [results] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
 
         if (results.length === 0) {
             return res.status(401).json({ error: "Người dùng không tồn tại" });
@@ -18,14 +16,18 @@ exports.login = async (req, res) => {
 
         const user = results[0];
 
-        // So sánh mật khẩu (nếu không sử dụng hàm băm, hãy kiểm tra trực tiếp)
         if (user.password_hash !== password) {
-            // Lưu ý: Nên dùng băm cho mật khẩu
             return res.status(401).json({ error: "Mật khẩu không đúng" });
         }
 
-        // Nếu thành công, trả về thông tin người dùng
+        const token = jwt.sign(
+            { userId: user.id },
+            process.env.SECRET_KEY,
+            { expiresIn: '1d' }
+        );
+
         res.status(200).json({
+            token,
             user: {
                 id: user.id,
                 username: user.username,
@@ -36,11 +38,10 @@ exports.login = async (req, res) => {
         });
     } catch (err) {
         console.error("Database query error: ", err);
-        return res
-            .status(500)
-            .json({ error: "Đã xảy ra lỗi. Vui lòng thử lại." });
+        return res.status(500).json({ error: "Đã xảy ra lỗi. Vui lòng thử lại." });
     }
 };
+
 // truy xuất và đăng ký
 exports.register = async (req, res) => {
     const { username, email, password, role } = req.body;
@@ -87,10 +88,10 @@ exports.forgotPassword = (req, res) => {
 
 exports.getAllUsers = async (req, res) => {
     try {
-        const results = await pool.query(
+        const [results] = await pool.query(
             "SELECT * FROM users WHERE role != 'admin'"
         );
-        res.json(results);
+        res.status(200).json(results);
     } catch (err) {
         console.error("Database query error:", err);
         res.status(500).json({
@@ -101,4 +102,25 @@ exports.getAllUsers = async (req, res) => {
 };
 exports.logout = (req, res) => {
     // Implement logout logic here
+};
+
+// Tạo hàm getUserProfile để lấy thông tin người dùng
+exports.getUserProfile = async (req, res) => {
+    try {
+        const userId = req.user.id; // Lấy từ middleware xác thực
+        const [results] = await pool.query(
+            "SELECT id, username, email, role, created_at as createdAt, updated_at as updatedAt FROM users WHERE id = ?",
+            [userId]
+        );
+        if (results.length === 0) {
+            return res.status(404).json({ error: "Người dùng không tồn tại" });
+        }
+        const user = results[0];
+        res.status(200).json({ user });
+    } catch (err) {
+        console.error("Database query error:", err);
+        return res
+            .status(500)
+            .json({ error: "Đã xảy ra lỗi. Vui lòng thử lại." });
+    }
 };

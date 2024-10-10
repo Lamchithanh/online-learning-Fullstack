@@ -21,19 +21,19 @@ const Header = () => {
         navigate("/");
     };
 
-    const handleMenuItemClick = (action) => {
-        switch (action) {
-            case "logout":
-                handleLogout();
-                break;
-            case "profile":
-                console.log("Profile clicked");
-                // Điều hướng đến trang cá nhân hoặc xử lý hành động
-                break;
-            default:
-                console.log(`Action ${action} clicked`);
-        }
-    };
+    // const handleMenuItemClick = (action) => {
+    //     switch (action) {
+    //         case "logout":
+    //             handleLogout();
+    //             break;
+    //         case "profile":
+    //             console.log("Profile clicked");
+    //             // Điều hướng đến trang cá nhân hoặc xử lý hành động
+    //             break;
+    //         default:
+    //             console.log(`Action ${action} clicked`);
+    //     }
+    // };
 
     return (
         <header className="header">

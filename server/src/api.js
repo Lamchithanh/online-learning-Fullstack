@@ -3,10 +3,33 @@ import axios from "axios";
 const API_URL = "http://localhost:9000/api";
 // const { getAuthHeader } = require("./middleware/auth"); // Đường dẫn chính xác đến file auth.js
 
+const api = axios.create({
+    baseURL: API_URL,
+});
+
+api.interceptors.request.use(
+    (config) => {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user && user.token) {
+            config.headers.Authorization = `Bearer ${user.token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
 const getAuthHeader = () => {
     const user = JSON.parse(localStorage.getItem("user"));
-    return user && user.token ? { Authorization: `Bearer ${user.token}` } : {};
-  };
+    if (user && user.token) {
+        console.log(
+            "Mã thông báo được tìm thấy trong localStorage:",
+            user.token
+        );
+        return { Authorization: `Bearer ${user.token}` };
+    }
+    console.log("Không tìm thấy mã thông báo trong localStorage");
+    return {};
+};
 // Đăng nhập người dùng
 // export const login = async (email, password) => {
 //     const response = await axios.post(`${API_URL}/users/login`, {
@@ -16,22 +39,22 @@ const getAuthHeader = () => {
 //     return response.data;
 // };
 
-export const login = async (email, password) => {
-    try {
-      const response = await axios.post(`${API_URL}/users/login`, {
-        email,
-        password,
-      });
-      if (response.data.token) {
-        localStorage.setItem("user", JSON.stringify(response.data));
-      }
-      return response.data;
-    } catch (error) {
-      console.error("Login error:", error);
-      throw error;
-    }
-  };
-  
+// export const login = async (email, password) => {
+//     try {
+//         const response = await axios.post(`${API_URL}/users/login`, {
+//             email,
+//             password,
+//         });
+//         if (response.data.token) {
+//             localStorage.setItem("user", JSON.stringify(response.data));
+//         }
+//         return response.data;
+//     } catch (error) {
+//         console.error("Login error:", error);
+//         throw error;
+//     }
+// };
+
 // Đăng ký người dùng mới
 export const register = async (userData) => {
     try {
@@ -46,6 +69,36 @@ export const register = async (userData) => {
     }
 };
 
+// login
+export const login = async (email, password) => {
+    try {
+        const response = await axios.post(`${API_URL}/users/login`, {
+            email,
+            password,
+        });
+        console.log("Phản hồi đăng nhập:", response.data);
+        if (response.data.token) {
+            localStorage.setItem(
+                "user",
+                JSON.stringify({
+                    token: response.data.token,
+                    ...response.data.user,
+                })
+            );
+            console.log(
+                "Mã thông báo đã được lưu vào localStorage:",
+                response.data.token
+            );
+        } else {
+            console.error("Không nhận được mã thông báo từ máy chủ");
+        }
+        return response.data;
+    } catch (error) {
+        console.error("Lỗi đăng nhập:", error.response || error);
+        throw error;
+    }
+};
+
 // Lấy danh sách người dùng (chỉ admin mới có quyền)
 export const fetchUsers = async () => {
     const response = await axios.get(`${API_URL}/users`, {
@@ -54,18 +107,34 @@ export const fetchUsers = async () => {
     return response.data;
 };
 
+//hàm để lấy thông tin người dùng
+export const fetchUserProfile = async () => {
+    try {
+        console.log("Đang tải hồ sơ người dùng...");
+        const headers = getAuthHeader();
+        console.log("Headers:", headers);
+        const response = await axios.get(`${API_URL}/users/profile`, {
+            headers,
+        });
+        console.log("Response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Lỗi khi tải hồ sơ người dùng:", error.response || error);
+        throw error;
+    }
+};
 // Lấy danh sách khóa học
 export const fetchCourses = async () => {
     try {
-      const response = await axios.get(`${API_URL}/courses`, {
-        headers: getAuthHeader()
-      });
-      return response.data;
+        const response = await axios.get(`${API_URL}/courses`, {
+            headers: getAuthHeader(),
+        });
+        return response.data;
     } catch (error) {
-      console.error("Error fetching courses:", error);
-      throw error;
+        console.error("Error fetching courses:", error);
+        throw error;
     }
-  };
+};
 
 // Thêm khóa học mới (chỉ instructor hoặc admin mới có quyền)
 export const addCourse = async (courseData) => {
