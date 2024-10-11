@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Card, Descriptions, Alert } from "antd";
-import { fetchUserProfile } from "../../../../server/src/api";
 
 const UserInfo = () => {
     const [user, setUser] = useState(null);
@@ -8,21 +7,13 @@ const UserInfo = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchUserInfo = async () => {
-            try {
-                const response = await fetchUserProfile();
-                setUser(response.user);
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching user info:", error);
-                setError(
-                    "Không thể tải thông tin người dùng. Vui lòng thử lại sau."
-                );
-                setLoading(false);
-            }
-        };
-
-        fetchUserInfo();
+        const userData = localStorage.getItem("user"); // Lấy thông tin người dùng từ localStorage
+        if (userData) {
+            setUser(JSON.parse(userData)); // Chuyển đổi dữ liệu thành đối tượng
+        } else {
+            setError("Không tìm thấy thông tin người dùng.");
+        }
+        setLoading(false); // Kết thúc quá trình tải
     }, []);
 
     if (loading) {

@@ -1,4 +1,3 @@
-// Users.js
 import React, { useState, useMemo } from "react";
 import {
     Table,
@@ -10,10 +9,10 @@ import {
     Spin,
     message,
     Switch,
-} from "antd"; // Thêm Switch để khóa/mở khóa tài khoản
+} from "antd";
 import axios from "axios";
 import { useDataFetching } from "../UseDataFetching/useDataFetching";
-import Loader from "../../../../client/src/context/Loader";
+import Loader from "../../../../client/src/context/Loader"; // Đảm bảo đây là đường dẫn đúng
 
 const { Option } = Select;
 
@@ -32,13 +31,17 @@ const Users = ({ fetchUsers }) => {
     const addUser = async (values) => {
         try {
             const token = localStorage.getItem("token");
-            await axios.post("http://localhost:9000/api/users", values, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const response = await axios.post(
+                "http://localhost:9000/api/users",
+                values,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
             message.success("User added successfully");
             setIsUserModalVisible(false);
             userForm.resetFields();
-            setUsers(await fetchUsers());
+            setUsers((prevUsers) => [...prevUsers, response.data]);
         } catch (error) {
             console.error("Error adding user:", error);
             message.error("Unable to add user");
@@ -48,7 +51,7 @@ const Users = ({ fetchUsers }) => {
     const editUser = async (values) => {
         try {
             const token = localStorage.getItem("token");
-            await axios.put(
+            const response = await axios.put(
                 `http://localhost:9000/api/users/${userToEdit.id}`,
                 values,
                 {
@@ -58,7 +61,11 @@ const Users = ({ fetchUsers }) => {
             message.success("User updated successfully");
             setIsUserEditModalVisible(false);
             userForm.resetFields();
-            setUsers(await fetchUsers());
+            setUsers((prevUsers) =>
+                prevUsers.map((user) =>
+                    user.id === userToEdit.id ? response.data : user
+                )
+            );
         } catch (error) {
             console.error("Error updating user:", error);
             message.error("Unable to update user");
@@ -72,7 +79,9 @@ const Users = ({ fetchUsers }) => {
                 headers: { Authorization: `Bearer ${token}` },
             });
             message.success("User deleted successfully");
-            setUsers(await fetchUsers());
+            setUsers((prevUsers) =>
+                prevUsers.filter((user) => user.id !== userId)
+            );
         } catch (error) {
             console.error("Error deleting user:", error);
             message.error("Unable to delete user");
@@ -85,17 +94,6 @@ const Users = ({ fetchUsers }) => {
             { title: "Username", dataIndex: "username", key: "username" },
             { title: "Email", dataIndex: "email", key: "email" },
             { title: "Role", dataIndex: "role", key: "role" },
-            {
-                title: "Registered Courses",
-                dataIndex: "registeredCourses",
-                key: "registeredCourses",
-            },
-            { title: "Progress", dataIndex: "progress", key: "progress" },
-            {
-                title: "Certificates",
-                dataIndex: "certificates",
-                key: "certificates",
-            },
             {
                 title: "Account Locked",
                 dataIndex: "isLocked",
@@ -133,7 +131,7 @@ const Users = ({ fetchUsers }) => {
                 ),
             },
         ],
-        []
+        [userToEdit]
     );
 
     const toggleAccountLock = async (userId, isLocked) => {
@@ -157,16 +155,16 @@ const Users = ({ fetchUsers }) => {
     };
 
     return (
-        <div>
+        <Spin spinning={usersLoading}>
             <Button
                 onClick={() => setIsUserModalVisible(true)}
                 style={{ marginBottom: 16 }}
             >
                 Add New User
             </Button>
-            {usersLoading ? <Loader /> :<Table columns={userColumns} dataSource={users} rowKey="id" />}
-                
-         
+
+            <Table columns={userColumns} dataSource={users} rowKey="id" />
+
             {/* Modal thêm người dùng */}
             <Modal
                 title="Add New User"
@@ -224,7 +222,6 @@ const Users = ({ fetchUsers }) => {
                         <Select>
                             <Option value="student">Student</Option>
                             <Option value="instructor">Instructor</Option>
-                            <Option value="admin">Admin</Option>
                         </Select>
                     </Form.Item>
                 </Form>
@@ -275,12 +272,11 @@ const Users = ({ fetchUsers }) => {
                         <Select>
                             <Option value="student">Student</Option>
                             <Option value="instructor">Instructor</Option>
-                            <Option value="admin">Admin</Option>
                         </Select>
                     </Form.Item>
                 </Form>
             </Modal>
-        </div>
+        </Spin>
     );
 };
 

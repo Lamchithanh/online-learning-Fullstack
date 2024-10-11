@@ -27,12 +27,12 @@ const Register = () => {
                 password,
                 role,
             });
-            toast.success("Registration successful! Please log in.");
+            toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
             navigate("/login");
         } catch (error) {
             toast.error(
                 error.response?.data?.error ||
-                    "An error occurred. Please try again."
+                    "Đã xảy ra lỗi. Vui lòng thử lại."
             );
         }
     };

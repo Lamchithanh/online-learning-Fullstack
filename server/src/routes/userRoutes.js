@@ -7,7 +7,7 @@ const { authMiddleware } = require("../middleware/auth");
 router.post("/users/login", userController.login);
 
 // Route để đăng ký
-router.post("/register", userController.register);
+router.post("/users/register", userController.register);
 
 // Route để lấy lại mật khẩu
 router.post("/forgot-password", userController.forgotPassword);
